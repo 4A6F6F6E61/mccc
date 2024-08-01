@@ -222,11 +222,6 @@ extern fn void set_trace_log_level(TraceLogLevel logLevel) @extern("SetTraceLogL
 extern fn void draw_plane(Vector3 centerPos, Vector2 size, char[4] color) @extern("DrawPlane");
 extern fn void draw_cube(Vector3 position, float width, float height, float length, char[4] color) @extern("DrawCube");
 extern fn void disable_cursor() @extern("DisableCursor");
-fn void test()
-{
-    Camera camera;
-    update_camera(&camera, CAMERA_FREE);
-}
 
 macro @mode_3d(camera; @body())
 {
