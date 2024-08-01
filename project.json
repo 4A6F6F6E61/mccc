@@ -31,14 +31,12 @@
         },
     },
     "linked-libraries": [
-        // "./glfw-3.4.bin.MACOS/lib-x86_64/libglfw3.a",
         "CoreVideo.framework",
         "IOKit.framework",
         "Cocoa.framework",
         "GLUT.framework",
         "OpenGL.framework",
         "./raylib-5.0_macos/lib/libraylib.a",
-        // "./raylib-5.0_macos/lib/libraylib.dylib"
     ],
     // Global settings.
     // CPU name, used for optimizations in the LLVM backend.

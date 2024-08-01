@@ -5,22 +5,76 @@ module raylib;
         https://github.com/tsoding/c3-demo/blob/main/raylib.c3
 */
 
-const Color DARKGRAY = {  80,  80,  80, 255 };
-const Color WHITE    = { 255, 255, 255, 255 };
-const Color RAYWHITE = { 245, 245, 245, 255 };
-const Color GREEN    = {   0, 255,   0, 255 };
+const Color LIGHTGRAY = { 200, 200, 200, 255 };
+const Color DARKGRAY  = {  80,  80,  80, 255 };
+const Color WHITE     = { 255, 255, 255, 255 };
+const Color RAYWHITE  = { 245, 245, 245, 255 };
+const Color GREEN     = {   0, 255,   0, 255 };
+const Color BLUE      = {   0, 121, 241, 255 }; 
+const Color LIME      = {   0, 158,  47, 255 };
+const Color GOLD      = { 255, 203,   0, 255 };
 
 def Color   = char[<4>];
-def Vector2 = float[<2>];
-def Vector3 = float[<3>];
-def Vector4 = float[<3>];
+
+struct Vector2 {
+    float x;
+    float y;
+}
+
+fn Vector2 float[<2>].c_struct(&this) {
+    return Vector2 {
+        .x = this.x,
+        .y = this.y
+    };
+}
+
+struct Vector3 {
+    float x;
+    float y;
+    float z;
+}
+
+fn Vector3 float[<3>].c_struct(&this) {
+    return Vector3 {
+        .x = this.x,
+        .y = this.y,
+        .z = this.z,
+    };
+}
+
+struct Vector4 {
+    float x;
+    float y;
+    float z;
+    float w;
+}
+
+fn Vector4 float[<4>].c_struct(&this) {
+    return Vector4 {
+        .x = this.x,
+        .y = this.y,
+        .z = this.z,
+        .w = this.w,
+    };
+}
+
+// def Vector2 = float[<2>];
+// def Vector3 = float[<3>];
+// def Vector4 = float[<3>];
 
 def Quaternion = Vector4;
 def Texture = Texture2D;
 def Camera = Camera3D;
 
-// TODO: Use proper enum, this is only temporary
-const int CAMERA_FREE = 1;
+const int CAMERA_PERSPECTIVE = 0;
+
+enum CameraMode : int {
+    CAMERA_CUSTOM,          // Custom camera
+    CAMERA_FREE,            // Free camera
+    CAMERA_ORBITAL,         // Orbital camera
+    CAMERA_FIRST_PERSON,    // First person camera
+    CAMERA_THIRD_PERSON     // Third person camera
+}
 
 struct ColorStruct {
     char r;
@@ -127,6 +181,19 @@ struct Shader {
     int *locs;              // Shader locations array (RL_MAX_SHADER_LOCATIONS)
 }
 
+// Trace log level
+// NOTE: Organized by priority level
+enum TraceLogLevel : int {
+    LOG_ALL,            // Display all logs
+    LOG_TRACE,          // Trace logging, intended for internal use only
+    LOG_DEBUG,          // Debug logging, used for internal debugging, it should be disabled on release builds
+    LOG_INFO,           // Info logging, used for program execution info
+    LOG_WARNING,        // Warning logging, used on recoverable failures
+    LOG_ERROR,          // Error logging, used on unrecoverable failures
+    LOG_FATAL,          // Fatal logging, used to abort program: exit(EXIT_FAILURE)
+    LOG_NONE            // Disable logging
+}
+
 extern fn void init_window(int width, int height, char *title) @extern("InitWindow");
 extern fn void close_window() @extern("CloseWindow");
 extern fn void set_target_fps(int fps) @extern("SetTargetFPS");
@@ -144,8 +211,42 @@ extern fn int get_random_value(int min, int max) @extern("GetRandomValue");
 extern fn void upload_mesh(Mesh *mesh, bool dynamic) @extern("UploadMesh");
 extern fn void unload_model(Model model) @extern("UnloadModel");
 extern fn void draw_text(char *text, int posX, int posY, int fontSize, char[4] color) @extern("DrawText");
-extern fn void begin_mode_3D(Camera3D camera) @extern("BeginMode3D");
-extern fn void end_mode_3D() @extern("EndMode3D");
+extern fn void begin_mode_3d(Camera3D camera) @extern("BeginMode3D");
+extern fn void draw_line_3d(Vector3 startPos, Vector3 endPos, char[4] color) @extern("DrawLine3D");
+extern fn void end_mode_3d() @extern("EndMode3D");
 extern fn void draw_model(Model model, Vector3 position, float scale, char[4] tint) @extern("DrawModel");
-extern fn void update_camera(Camera *camera, int mode) @extern("UpdateCamera");
+extern fn void update_camera(Camera *camera, CameraMode mode) @extern("UpdateCamera");
 extern fn Model load_model_from_mesh(Mesh mesh) @extern("LoadModelFromMesh");
+extern fn void draw_grid(int slices, float spacing) @extern("DrawGrid");
+extern fn void set_trace_log_level(TraceLogLevel logLevel) @extern("SetTraceLogLevel"); 
+extern fn void draw_plane(Vector3 centerPos, Vector2 size, char[4] color) @extern("DrawPlane");
+extern fn void draw_cube(Vector3 position, float width, float height, float length, char[4] color) @extern("DrawCube");
+extern fn void disable_cursor() @extern("DisableCursor");
+fn void test()
+{
+    Camera camera;
+    update_camera(&camera, CAMERA_FREE);
+}
+
+macro @mode_3d(camera; @body())
+{
+    raylib::begin_mode_3d(camera);
+        @body();
+    raylib::end_mode_3d();
+}
+
+macro @draw(;@body())
+{
+    raylib::begin_drawing();
+        @body();
+    raylib::end_drawing();
+}
+
+// Macro so we can change the behaviour depending on the platform
+macro @game_loop(;@body())
+{
+    while (!raylib::window_should_close()) 
+    {
+        @body();
+    }
+}
